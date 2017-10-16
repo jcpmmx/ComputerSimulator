@@ -5,7 +5,7 @@ from __future__ import print_function, unicode_literals
 
 # TODO(Julian): Improve relative imports once the project is better structured
 from enums import ComputerInstruction
-from utils import ComputerException, Stack
+from utils import ComputerException, ComputerStack
 
 
 class Computer(object):
@@ -20,11 +20,11 @@ class Computer(object):
     - RET: Pops address from stack and set PC to address
     - STOP: Exits the program
     """
-    _program_stack = Stack(0)
+    _program_stack = ComputerStack(0)
     _program_counter = 0
     _number_of_addresses = 0
-    _memory = []
-    _last_call_address = 0
+    _memory = []  # 'Local memory' that stores values while executing computer instructions
+    _last_called_address = 0
 
     def __init__(self, number_of_addresses):
         """
@@ -32,14 +32,14 @@ class Computer(object):
 
         :param number_of_addresses: The number of addresses that the current `Computer` will support
         """
-        self._program_stack = Stack(number_of_addresses)
+        self._program_stack = ComputerStack(number_of_addresses)
         self._number_of_addresses = number_of_addresses
 
     def set_address(self, address_index):
         """
-        Sets the current value for the index of the memory.
+        Sets the current value for the index of the program stack.
 
-        :param address_index: The value to set the memory index to
+        :param address_index: The value to set the program stack index to
         :return: Computer
         """
         if address_index <= self._number_of_addresses:
@@ -52,32 +52,28 @@ class Computer(object):
 
     def insert(self, possible_instruction, instruction_arg=None):
         """
-        Inserts `possible_instruction` into the current memory slot.
+        Inserts `possible_instruction` into the current program stack slot.
 
-        :param possible_instruction: The instruction to insert into memory
+        :param possible_instruction: The instruction to insert into the program stack
         :param instruction_arg: Optional arg to pass to tied to `possible_instruction`
         :return: Computer
         """
         instruction = ComputerInstruction.get_value(possible_instruction)
         if instruction:
-            value_to_store = (instruction, instruction_arg) if instruction_arg else instruction
+            value_to_store = (instruction, instruction_arg)
             self._program_stack.push(value_to_store)
         return self
 
     def execute(self):
         """
-        Executes the stored program starting by the address hold by the program counter.
+        Executes the stored set of instructions (inside the program stack) starting by the address hold by the program
+        counter. It uses local memory to store temporary data that might result from instructions.
 
         :return: None
         """
         current_instruction = self._program_stack.get(self._program_counter)
         while current_instruction:
-            if isinstance(current_instruction, tuple):
-                instruction = current_instruction[0]
-                arg = current_instruction[1]
-            else:
-                instruction = current_instruction
-                arg = None
+            instruction, arg = current_instruction
 
             if instruction == ComputerInstruction.PUSH:
                 self._memory.append(arg)
@@ -86,14 +82,14 @@ class Computer(object):
                 print(self._memory.pop())
 
             elif instruction == ComputerInstruction.CALL:
-                self._last_call_address = self._program_counter + 1
+                self._last_called_address = self._program_counter + 1
                 self._program_counter = arg
 
             elif instruction == ComputerInstruction.MULT:
                 self._memory.append(self._memory.pop() * self._memory.pop())
 
             elif instruction == ComputerInstruction.RET:
-                self._program_counter = self._last_call_address
+                self._program_counter = self._last_called_address
 
             elif instruction == ComputerInstruction.STOP:
                 return

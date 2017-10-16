@@ -4,11 +4,14 @@
 from __future__ import print_function, unicode_literals
 
 
-class Stack(object):
+class ComputerStack(object):
     """
-    Class that implements a stack using a dict.
+    Class that implements a 'computer stack' using a dict.
 
-    It varies slightly from a traditional stack as it supports pushing to and getting values from a specific index.
+    A computer stack is just a place to store all instructions to the computer without deleting anything.
+    Data itself will be stored in a simple 'local memory' in `Computer`.
+
+    It's kind of a 'static array'.
     """
     _stack = {}
     _stack_size = 0
@@ -16,7 +19,7 @@ class Stack(object):
 
     def __init__(self, stack_size):
         """
-        Creates a new `Stack` with `stack_size` slots (initially empty).
+        Creates a new `ComputerStack` with `stack_size` slots (initially empty).
 
         :param stack_size: The size for the current stack
         """
@@ -25,7 +28,7 @@ class Stack(object):
 
     def __str__(self):
         """
-        Returns a string representation of a `Stack`.
+        Returns a string representation of a `ComputerStack`.
         """
         return '***\n{}\n***'.format('\n'.join('{:3.0f}: {}'.format(k, v or '-') for k, v in self._stack.items()))
 
@@ -53,24 +56,6 @@ class Stack(object):
         """
         self._stack[self._stack_pointer] = item
         self._stack_pointer += 1
-
-    def pop(self):
-        """
-        Returns the item that sits on top of the stack.
-
-        :return: The item to be returned from the top of the stack
-        """
-        last_stack_pointer = self._stack_pointer
-        item = self._stack[last_stack_pointer]
-        self._stack[last_stack_pointer] = None
-        # Setting the pointer to the next non-None value in the stack
-        for idx in range(self._stack_pointer)[::-1]:
-            if self._stack[idx]:
-                self._stack_pointer = idx
-                break
-        if self._stack_pointer == last_stack_pointer:
-            self._stack_pointer = 0
-        return item
 
     def get(self, index):
         """
