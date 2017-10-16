@@ -23,8 +23,9 @@ class Computer(object):
     _program_stack = ComputerStack(0)
     _program_counter = 0
     _number_of_addresses = 0
+
     _memory = []  # 'Local memory' that stores values while executing computer instructions
-    _last_called_address = 0
+    _address_to_ret = 0  # Reference in case of RET
 
     def __init__(self, number_of_addresses):
         """
@@ -60,8 +61,7 @@ class Computer(object):
         """
         instruction = ComputerInstruction.get_value(possible_instruction)
         if instruction:
-            value_to_store = (instruction, instruction_arg)
-            self._program_stack.push(value_to_store)
+            self._program_stack.push((instruction, instruction_arg))  # Storing instructions as tuple
         return self
 
     def execute(self):
@@ -71,9 +71,12 @@ class Computer(object):
 
         :return: None
         """
-        current_instruction = self._program_stack.get(self._program_counter)
-        while current_instruction:
-            instruction, arg = current_instruction
+        while self._program_counter <= self._number_of_addresses:
+            instruction_data = self._program_stack.get(self._program_counter)
+            if instruction_data:
+                instruction, arg = instruction_data
+            else:
+                instruction, arg = None, None
 
             if instruction == ComputerInstruction.PUSH:
                 self._memory.append(arg)
@@ -82,21 +85,20 @@ class Computer(object):
                 print(self._memory.pop())
 
             elif instruction == ComputerInstruction.CALL:
-                self._last_called_address = self._program_counter + 1
+                self._address_to_ret = self._program_counter + 1
                 self._program_counter = arg
 
             elif instruction == ComputerInstruction.MULT:
                 self._memory.append(self._memory.pop() * self._memory.pop())
 
             elif instruction == ComputerInstruction.RET:
-                self._program_counter = self._last_called_address
+                self._program_counter = self._address_to_ret
 
             elif instruction == ComputerInstruction.STOP:
                 return
 
             if instruction not in (ComputerInstruction.RET, ComputerInstruction.CALL):
                 self._program_counter += 1
-            current_instruction = self._program_stack.get(self._program_counter)
 
     def debug(self):
         """
