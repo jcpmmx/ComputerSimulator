@@ -147,7 +147,7 @@ class Computer(models.Model):
 
         :return: None
         """
-        program_output = ''
+        program_output = []
         while self.program_counter <= self.program_stack.stack_size:
             instruction, instruction_arg = self.program_stack.get_instruction(self.program_counter)
 
@@ -156,7 +156,7 @@ class Computer(models.Model):
 
             elif instruction == ComputerInstruction.PRINT:
                 value_to_print = self.program_stack.pop_from_memory()
-                program_output += '{}\n'.format(value_to_print)
+                program_output.append(value_to_print)
 
             elif instruction == ComputerInstruction.CALL:
                 self.program_counter = instruction_arg
@@ -180,31 +180,3 @@ class Computer(models.Model):
                 self.program_counter += 1
 
         return program_output
-
-
-# TODO(Julian): Remove this and add proper test cases
-# For quick, local testing
-if __name__ == '__main__':
-    import os
-    import sys
-    import django
-    sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir))
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'deviget.settings'
-    django.setup()
-
-    PRINT_TENTEN_BEGIN = 50
-    MAIN_BEGIN = 0
-    computer = Computer(100)
-
-    # Instructions for the print_tenten function
-    computer.set_address(PRINT_TENTEN_BEGIN).insert("MULT").insert("PRINT").insert("RET")
-    # The start of the main function
-    computer.set_address(MAIN_BEGIN).insert("PUSH", 1009).insert("PRINT")
-    # Return address for when print_tenten function finishes
-    computer.insert("PUSH", 6)
-    # Setup arguments and call print_tenten
-    computer.insert("PUSH", 101).insert("PUSH", 10).insert("CALL", PRINT_TENTEN_BEGIN)
-    # Stop the program
-    computer.insert("STOP")
-    # Execute the program
-    asd = computer.set_address(MAIN_BEGIN).execute()
