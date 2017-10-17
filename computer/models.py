@@ -3,15 +3,13 @@
 
 from __future__ import print_function, unicode_literals
 
-import uuid
-
 from jsonfield import JSONField
 
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 
 from computer.enums import ComputerInstruction
-from computer.utils import ComputerException
+from computer.utils import ComputerException, generate_computer_id
 
 
 class ProgramStack(models.Model):
@@ -102,7 +100,7 @@ class Computer(models.Model):
     - RET: Pops address from stack and set PC to address
     - STOP: Exits the program
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(primary_key=True, default=generate_computer_id, max_length=7, editable=False)
     program_stack = models.OneToOneField(ProgramStack)
     program_counter = models.PositiveSmallIntegerField('Program counter (PC)', default=0)
 
