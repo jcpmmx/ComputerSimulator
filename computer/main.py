@@ -10,7 +10,7 @@ from utils import ComputerException, ComputerStack
 
 class Computer(object):
     """
-    Class that implements a 'Computer Simulator' using a `Stack` as 'memory'.
+    Class that implements a 'Computer Simulator' using a `ComputerStack` as 'memory'.
 
     The current state of the Computer supports the following instructions:
     - PUSH(arg): Pushes an argument to the stack
@@ -20,12 +20,9 @@ class Computer(object):
     - RET: Pops address from stack and set PC to address
     - STOP: Exits the program
     """
-    _program_stack = ComputerStack(0)
+    _computer_stack = ComputerStack(0)
     _program_counter = 0
     _number_of_addresses = 0
-
-    _memory = []  # 'Local memory' that stores values while executing computer instructions
-    _address_to_ret = 0  # Reference in case of RET
 
     def __init__(self, number_of_addresses):
         """
@@ -33,7 +30,7 @@ class Computer(object):
 
         :param number_of_addresses: The number of addresses that the current `Computer` will support
         """
-        self._program_stack = ComputerStack(number_of_addresses)
+        self._computer_stack = ComputerStack(number_of_addresses)
         self._number_of_addresses = number_of_addresses
 
     def set_address(self, address_index):
@@ -44,7 +41,7 @@ class Computer(object):
         :return: Computer
         """
         if address_index <= self._number_of_addresses:
-            self._program_stack.set_index(address_index)
+            self._computer_stack.set_index(address_index)
         else:
             raise ComputerException(
                 "You cannot set the address of Computer to {} since it only has support to {} addresses".format(
@@ -61,7 +58,7 @@ class Computer(object):
         """
         instruction = ComputerInstruction.get_value(possible_instruction)
         if instruction:
-            self._program_stack.push((instruction, instruction_arg))  # Storing instructions as tuple
+            self._computer_stack.add_instruction((instruction, instruction_arg))  # Storing instructions as tuple
         return self
 
     def execute(self):
@@ -72,35 +69,37 @@ class Computer(object):
         :return: None
         """
         while self._program_counter <= self._number_of_addresses:
-            instruction_data = self._program_stack.get(self._program_counter)
-            if instruction_data:
-                instruction, arg = instruction_data
-            else:
-                instruction, arg = None, None
+            instruction, instruction_arg = self._computer_stack.get_instruction(self._program_counter)
 
             if instruction == ComputerInstruction.PUSH:
-                self._memory.append(arg)
+                self._computer_stack.push_to_memory(instruction_arg)
 
             elif instruction == ComputerInstruction.PRINT:
-                print(self._memory.pop())
+                value_to_print = self._computer_stack.pop_from_memory()
+                print(value_to_print)
 
             elif instruction == ComputerInstruction.CALL:
-                self._address_to_ret = self._program_counter + 1
-                self._program_counter = arg
+                self._program_counter = instruction_arg
 
             elif instruction == ComputerInstruction.MULT:
-                self._memory.append(self._memory.pop() * self._memory.pop())
+                operand1 = self._computer_stack.pop_from_memory()
+                operand2 = self._computer_stack.pop_from_memory()
+                if operand1 and operand2:
+                    self._computer_stack.push_to_memory(operand1 * operand2)
 
             elif instruction == ComputerInstruction.RET:
-                self._program_counter = self._address_to_ret
+                value_to_ret_to = self._computer_stack.pop_from_memory()
+                if value_to_ret_to:
+                    self._program_counter = value_to_ret_to
 
             elif instruction == ComputerInstruction.STOP:
                 return
 
+            # Moving forward with our program execution
             if instruction not in (ComputerInstruction.RET, ComputerInstruction.CALL):
                 self._program_counter += 1
 
-    def debug(self):
+    def _debug(self):
         """
         Prints all internal data store in the current `Computer`.
         :return: None
@@ -108,8 +107,8 @@ class Computer(object):
         print('-------')
         print('Number of addresses: {}'.format(self._number_of_addresses))
         print('Program stack:')
-        print('{}'.format(self._program_stack))
-        print('Program stack pointer: {}'.format(self._program_stack.pointer))
+        print('{}'.format(self._computer_stack))
+        print('Program stack pointer: {}'.format(self._computer_stack.pointer))
         print('Program counter: {}'.format(self._program_counter))
         print('-------')
 

@@ -6,16 +6,16 @@ from __future__ import print_function, unicode_literals
 
 class ComputerStack(object):
     """
-    Class that implements a 'computer stack' using a dict.
+    Class that implements a computer stack using a dict.
 
-    A computer stack is just a place to store all instructions to the computer without deleting anything.
-    Data itself will be stored in a simple 'local memory' in `Computer`.
-
-    It's kind of a 'static array'.
+    A computer stack is just a place to store all instructions of the computer.
+    Data resulting from those instructions will be stored in a simple 'local memory' attribute.
     """
     _stack = {}
-    _stack_size = 0
     _stack_pointer = 0
+    _stack_size = 0
+
+    _memory = []  # 'Local memory' that stores values while executing computer instructions
 
     def __init__(self, stack_size):
         """
@@ -23,7 +23,7 @@ class ComputerStack(object):
 
         :param stack_size: The size for the current stack
         """
-        self._stack = {idx: None for idx in xrange(stack_size)}
+        self._stack = {idx: (None, None) for idx in xrange(stack_size)}
         self._stack_size = stack_size
 
     def __str__(self):
@@ -46,7 +46,7 @@ class ComputerStack(object):
         if index <= self._stack_size:
             self._stack_pointer = index
 
-    def push(self, item):
+    def add_instruction(self, item):
         """
         Stores `item` into the stack, to the current position of the stack pointer.
         It also sets the stack pointer to the index that the next item should have.
@@ -57,13 +57,32 @@ class ComputerStack(object):
         self._stack[self._stack_pointer] = item
         self._stack_pointer += 1
 
-    def get(self, index):
+    def get_instruction(self, index):
         """
         Returns (without removing) the item that sits in the stack at index.
 
         :return: The value from the stack at index, if any
         """
-        return self._stack.get(index)
+        return self._stack.get(index, (None, None))
+
+    def push_to_memory(self, value):
+        """
+        Pushes `value` to local memory.
+
+        :param value: The item to be added to local memory
+        """
+        self._memory.append(value)
+
+    def pop_from_memory(self):
+        """
+        Pops the latest value stored in local memory, if any.
+
+        :return: The value from the stack at index, if any
+        """
+        try:
+            return self._memory.pop()
+        except IndexError:
+            pass
 
 
 class ComputerException(Exception):
