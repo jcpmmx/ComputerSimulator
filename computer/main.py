@@ -3,9 +3,8 @@
 
 from __future__ import print_function, unicode_literals
 
-# TODO(Julian): Improve relative imports once the project is better structured
-from enums import ComputerInstruction
-from utils import ComputerException, ComputerStack
+from computer.enums import ComputerInstruction
+from computer.utils import ComputerException, ComputerStack
 
 
 class Computer(object):
