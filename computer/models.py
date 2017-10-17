@@ -3,6 +3,8 @@
 
 from __future__ import print_function, unicode_literals
 
+import uuid
+
 from jsonfield import JSONField
 
 from django.core.validators import validate_comma_separated_integer_list
@@ -100,6 +102,7 @@ class Computer(models.Model):
     - RET: Pops address from stack and set PC to address
     - STOP: Exits the program
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     program_stack = models.OneToOneField(ProgramStack)
     program_counter = models.PositiveSmallIntegerField('Program counter (PC)', default=0)
 
