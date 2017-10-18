@@ -19,6 +19,10 @@ class ComputerSerializer(serializers.ModelSerializer):
         fields = ('id', 'stack')
 
     def create(self, validated_data):
+        """
+        This method uses some custom calls to bypass the fact our __init__ methods in `Computer` and `ProgramStack` have
+        custom values.
+        """
         stack_size = validated_data['stack']
         ps = ProgramStack(stack_size=stack_size)
         ps.save()
