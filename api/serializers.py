@@ -40,13 +40,12 @@ class ComputerInsertSerializer(serializers.Serializer):
     """
     Serializer to manage arguments passed to `Computer` instructions.
     """
-    arg = serializers.IntegerField(
-        label='arg', write_only=True, default=None, help_text='Required when using PUSH, RET.')
+    arg = serializers.IntegerField(label='arg', write_only=True, default=None, help_text='Required when using PUSH.')
     addr = serializers.IntegerField(label='addr', write_only=True, default=None, help_text='Required when using CALL.')
 
     def validate_arg(self, value):
-        if self.context['instruction'] in [ComputerInstruction.PUSH, ComputerInstruction.RET] and not value:
-            raise serializers.ValidationError('You must provide this value when using PUSH, RET.')
+        if self.context['instruction'] == ComputerInstruction.PUSH and not value:
+            raise serializers.ValidationError('You must provide this value when using PUSH.')
         return value
 
     def validate_addr(self, value):
