@@ -5,15 +5,24 @@ from __future__ import print_function, unicode_literals
 
 from rest_framework import serializers
 
+from computer.models import Computer, ProgramStack
 
-class ComputerSerializer(serializers.Serializer):
+
+class ComputerSerializer(serializers.ModelSerializer):
     """
     Serializer to manage `Computer` instances.
     """
-    id = serializers.IntegerField(read_only=True, help_text="ID of the computer")
-
     stack = serializers.IntegerField(write_only=True, help_text="Size of the computer's program stack")
 
-    def to_internal_value(self, data):
-        score = data.get('score')
-        player_name = data.get('player_name')
+    class Meta:
+        model = Computer
+        fields = ('id', 'stack')
+
+    def create(self, validated_data):
+        stack_size = validated_data['stack']
+        ps = ProgramStack(stack_size=stack_size)
+        ps.save()
+        computer = Computer(stack_size=stack_size)
+        computer.program_stack = ps
+        computer.save()
+        return computer

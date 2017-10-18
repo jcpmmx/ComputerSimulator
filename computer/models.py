@@ -24,15 +24,17 @@ class ProgramStack(models.Model):
     stack_size = models.PositiveSmallIntegerField(default=0)
     memory = models.CharField(max_length=1000, validators=[validate_comma_separated_integer_list])
 
-    def __init__(self, stack_size):
+    def __init__(self, *args, **kwargs):
         """
         Creates a new `ProgramStack` with `stack_size` slots (initially empty).
 
         :param stack_size: The size for the current stack
         """
-        super(ProgramStack, self).__init__()
-        self.data = {idx: (None, None) for idx in xrange(stack_size)}
-        self.stack_size = stack_size
+        stack_size = kwargs.pop('stack_size', 0)
+        super(ProgramStack, self).__init__(*args, **kwargs)
+        if stack_size:
+            self.data = {idx: (None, None) for idx in xrange(stack_size)}
+            self.stack_size = stack_size
 
     def set_index(self, index):
         """
@@ -104,14 +106,16 @@ class Computer(models.Model):
     program_stack = models.OneToOneField(ProgramStack)
     program_counter = models.PositiveSmallIntegerField('Program counter (PC)', default=0)
 
-    def __init__(self, number_of_addresses):
+    def __init__(self, *args, **kwargs):
         """
         Creates a new `Computer` with `number_of_addresses` addresses, assuming `number_of_addresses` is a positive int.
 
         :param number_of_addresses: The number of addresses that the current `Computer` will support
         """
-        super(Computer, self).__init__()
-        self.program_stack = ProgramStack(number_of_addresses)
+        stack_size = kwargs.pop('stack_size', 0)
+        super(Computer, self).__init__(*args, **kwargs)
+        if stack_size:
+            self.program_stack = ProgramStack(stack_size=stack_size)
 
     def set_address(self, address_index):
         """
