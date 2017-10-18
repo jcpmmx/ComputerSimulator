@@ -116,6 +116,7 @@ class Computer(models.Model):
         super(Computer, self).__init__(*args, **kwargs)
         if stack_size:
             self.program_stack = ProgramStack(stack_size=stack_size)
+            self.program_stack.save()
 
     def set_address(self, address_index):
         """
@@ -130,6 +131,7 @@ class Computer(models.Model):
             raise ComputerException(
                 "You cannot set the address of Computer to {} since it only has support to {} addresses".format(
                 address_index, self.program_stack.stack_size))
+        self.program_stack.save()
         return self
 
     def insert(self, possible_instruction, instruction_arg=None):
@@ -143,6 +145,7 @@ class Computer(models.Model):
         instruction = ComputerInstruction.get_value(possible_instruction)
         if instruction:
             self.program_stack.add_instruction((instruction, instruction_arg))
+        self.program_stack.save()
         return self
 
     def execute(self):
@@ -185,3 +188,16 @@ class Computer(models.Model):
                 self.program_counter += 1
 
         return program_output
+
+    def debug(self):
+        """
+        Returns data about the internals of the current `Computer`.
+
+        :return: str
+        """
+        return {
+            'program_counter': '{}'.format(self.program_counter),
+            'number_of_addresses': '{}'.format(self.program_stack.stack_size),
+            'program_stack': self.program_stack.data,
+            'program_stack_pointer': '{}'.format(self.program_stack.stack_pointer),
+        }

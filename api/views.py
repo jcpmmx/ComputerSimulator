@@ -46,10 +46,18 @@ class ComputerViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, Generi
             computer.save()
         return Response()
 
-    @detail_route(methods=['patch'], url_path='exec')
+    @detail_route(methods=['post'], url_path='exec')
     def execute(self, request, pk=None):
         """
         Custom route to invoke the `execute` method of a `Computer`.
         """
         computer = self.get_object()
         return Response(computer.execute())
+
+    @detail_route(methods=['post'], url_path='debug')
+    def debug(self, request, pk=None):
+        """
+        Custom route to invoke the `debug` method of a `Computer`.
+        """
+        computer = self.get_object()
+        return Response(computer.debug())
