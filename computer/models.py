@@ -161,19 +161,19 @@ class Computer(models.Model):
 
             elif instruction == ComputerInstruction.PRINT:
                 value_to_print = self.program_stack.pop_from_memory()
-                program_output.append(value_to_print)
+                program_output.append('{}'.format(value_to_print))
 
             elif instruction == ComputerInstruction.CALL:
                 self.program_counter = instruction_arg
 
             elif instruction == ComputerInstruction.MULT:
-                operand1 = self.program_stack.pop_from_memory()
-                operand2 = self.program_stack.pop_from_memory()
+                operand1 = int(self.program_stack.pop_from_memory())
+                operand2 = int(self.program_stack.pop_from_memory())
                 if operand1 and operand2:
                     self.program_stack.push_to_memory(operand1 * operand2)
 
             elif instruction == ComputerInstruction.RET:
-                value_to_ret_to = self.program_stack.pop_from_memory()
+                value_to_ret_to = int(self.program_stack.pop_from_memory())
                 if value_to_ret_to:
                     self.program_counter = value_to_ret_to
 

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from api.serializers import ComputerSerializer
+from computer.enums import ComputerInstruction
 from computer.models import Computer
 
 
@@ -28,6 +29,7 @@ class ComputerViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, Generi
         if addr:
             computer = self.get_object()
             computer.set_address(addr)
+            computer.save()
         return Response()
 
     @detail_route(methods=['post'], url_path='stack/insert/(?P<possible_instruction>[^/.]+)')
@@ -35,11 +37,14 @@ class ComputerViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, Generi
         """
         Custom route to invoke the `insert` method of a `Computer`.
         """
-        instruction_arg = int(request.data.get('arg'))  # Assuming only ints as possible args to instructions
-        if possible_instruction:
+        instruction = ComputerInstruction.get_value(possible_instruction)
+        if instruction:
+            arg_name = 'addr' if instruction == ComputerInstruction.CALL else 'arg'
+            instruction_arg = request.data.get(arg_name)
             computer = self.get_object()
             computer.insert(possible_instruction, instruction_arg=instruction_arg)
-        return Response({'asd': 123})
+            computer.save()
+        return Response()
 
     @detail_route(methods=['patch'], url_path='exec')
     def execute(self, request, pk=None):
