@@ -18,7 +18,7 @@ if __name__ == '__main__':
     PRINT_TENTEN_BEGIN = 50
     MAIN_BEGIN = 0
     from computer.models import Computer
-    computer = Computer(100)
+    computer = Computer(stack_size=100)
 
     # Instructions for the print_tenten function
     computer.set_address(PRINT_TENTEN_BEGIN).insert("MULT").insert("PRINT").insert("RET")
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     # Execute the program
     computer.set_address(MAIN_BEGIN)
     output = computer.execute()
+
     print('---')
     print('\n'.join('{}'.format(x) for x in output))
     print('---')

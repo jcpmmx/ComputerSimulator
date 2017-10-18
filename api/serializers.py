@@ -5,7 +5,7 @@ from __future__ import print_function, unicode_literals
 
 from rest_framework import serializers
 
-from computer.models import Computer, ProgramStack
+from computer.models import Computer
 
 
 class ComputerSerializer(serializers.ModelSerializer):
@@ -20,13 +20,9 @@ class ComputerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-        This method uses some custom calls to bypass the fact our __init__ methods in `Computer` and `ProgramStack` have
-        custom values.
+        This method uses some custom calls to bypass the fact the __init__ method in `Computer` has custom values.
         """
         stack_size = validated_data['stack']
-        ps = ProgramStack(stack_size=stack_size)
-        ps.save()
         computer = Computer(stack_size=stack_size)
-        computer.program_stack = ps
         computer.save()
         return computer
