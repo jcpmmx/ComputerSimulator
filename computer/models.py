@@ -31,13 +31,12 @@ class Computer(models.Model):
 
     def __init__(self, *args, **kwargs):
         """
-        Creates a new `Computer`.
+        Small helper method to make sure addresses in the program stack are ints.
         """
         super(Computer, self).__init__(*args, **kwargs)
-        if self.program_stack_size:
-            self.program_stack = {idx: (None, None) for idx in xrange(self.program_stack_size)}
+        self.program_stack = {int(addr): inst for addr, inst in self.program_stack.items()}
 
-    def set_address(self, address_index):
+    def set_address(self, address_index, save=False):
         """
         Sets the current value for the index of the program stack.
 
@@ -46,13 +45,14 @@ class Computer(models.Model):
         """
         if address_index <= self.program_stack_size:
             self.program_stack_pointer = address_index
-        else:
-            raise ComputerException(
-                "You cannot set the address of Computer to {} since it only has support to {} addresses".format(
-                address_index, self.program_stack_size or 0))
-        return self
+            if save:
+                self.save()
+            return self
+        raise ComputerException(
+            "You cannot set the address of Computer to {} since it only supports {} address(es)".format(
+            address_index, self.program_stack_size or 0))
 
-    def insert(self, possible_instruction, instruction_arg=None):
+    def insert(self, possible_instruction, instruction_arg=None, save=False):
         """
         Inserts `possible_instruction` into the current program stack slot.
 
@@ -62,8 +62,10 @@ class Computer(models.Model):
         """
         instruction = ComputerInstruction.get_value(possible_instruction)
         if instruction:
-            self.program_stack[self.program_stack_pointer] = (instruction, instruction_arg)
+            self.program_stack[int(self.program_stack_pointer)] = (instruction, instruction_arg)
             self.program_stack_pointer += 1
+            if save:
+                self.save()
         return self
 
     def execute(self):
@@ -73,31 +75,34 @@ class Computer(models.Model):
 
         :return: None
         """
-        program_output = []
+        program_output_data = []
         memory = []
         initial_program_counter = self.program_counter
 
         while self.program_counter <= self.program_stack_size:
             instruction, instruction_arg = self.program_stack.get(self.program_counter, (None, None))
+            # Making sure args are ints
+            if instruction_arg:
+                instruction_arg = int(instruction_arg)
 
             if instruction == ComputerInstruction.PUSH:
                 memory.append(instruction_arg)
 
             elif instruction == ComputerInstruction.PRINT:
                 value_to_print = memory.pop()
-                program_output.append('{}'.format(value_to_print))
+                program_output_data.append(value_to_print)
 
             elif instruction == ComputerInstruction.CALL:
                 self.program_counter = instruction_arg
 
             elif instruction == ComputerInstruction.MULT:
-                operand1 = int(memory.pop())
-                operand2 = int(memory.pop())
+                operand1 = memory.pop()
+                operand2 = memory.pop()
                 if operand1 and operand2:
                     memory.append(operand1 * operand2)
 
             elif instruction == ComputerInstruction.RET:
-                value_to_ret_to = int(memory.pop())
+                value_to_ret_to = memory.pop()
                 if value_to_ret_to:
                     self.program_counter = value_to_ret_to
 
@@ -109,7 +114,7 @@ class Computer(models.Model):
                 self.program_counter += 1
 
         self.program_counter = initial_program_counter
-        return program_output
+        return program_output_data
 
     def debug(self):
         """
@@ -117,9 +122,11 @@ class Computer(models.Model):
 
         :return: str
         """
+        program_stack_data = {addr: inst for addr, inst in self.program_stack.items() if inst[0] is not None}
+        program_stack_data = sorted(program_stack_data.items(), key=lambda x: x[0])
         return {
             'program_counter': '{}'.format(self.program_counter),
-            'program_stack': {addr: inst for addr, inst in self.program_stack.items() if inst[0] is not None},
+            'program_stack': program_stack_data,
             'program_stack_size': '{}'.format(self.program_stack_size),
             'program_stack_pointer': '{}'.format(self.program_stack_pointer),
         }

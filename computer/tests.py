@@ -26,8 +26,8 @@ class ComputerTestCase(TestCase):
         computer.insert('PUSH', 101).insert('PUSH', 10).insert('CALL', PRINT_TENTEN_BEGIN)
         computer.insert('STOP')
         computer.set_address(MAIN_BEGIN)
-        output_data = computer.execute()
-        self.assertEqual(output_data, ['1009', '1010'])
+        program_output_data = computer.execute()
+        self.assertEqual(program_output_data, [1009, 1010])
 
     def test_bad_program(self):
         """
@@ -54,5 +54,5 @@ class ComputerTestCase(TestCase):
         computer.set_address(13)
         computer.insert('PRINT').insert('MULT').insert('PRINT').insert('STOP')
         computer.set_address(0)
-        output_data = computer.execute()
-        self.assertEqual(output_data, ['49', '49'])
+        program_output_data = computer.execute()
+        self.assertEqual(program_output_data, [49, 49])
