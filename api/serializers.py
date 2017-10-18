@@ -20,9 +20,7 @@ class ComputerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-        This method uses some custom calls to bypass the fact the __init__ method in `Computer` has custom values.
+        Creates a new `Computer` instance via API.
         """
-        stack_size = validated_data['stack']
-        computer = Computer(stack_size=stack_size)
-        computer.save()
-        return computer
+        validated_data['program_stack_size'] = validated_data.pop('stack', 0)
+        return super(ComputerSerializer, self).create(validated_data)

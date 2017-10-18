@@ -31,15 +31,11 @@ class Computer(models.Model):
 
     def __init__(self, *args, **kwargs):
         """
-        Creates a new `Computer` with `number_of_addresses` addresses, assuming `number_of_addresses` is a positive int.
-
-        :param number_of_addresses: The number of addresses that the current `Computer` will support
+        Creates a new `Computer`.
         """
-        stack_size = kwargs.pop('stack_size', 0)
         super(Computer, self).__init__(*args, **kwargs)
-        if stack_size:
-            self.program_stack = {idx: (None, None) for idx in xrange(stack_size)}
-            self.program_stack_size = stack_size
+        if self.program_stack_size:
+            self.program_stack = {idx: (None, None) for idx in xrange(self.program_stack_size)}
 
     def set_address(self, address_index):
         """
@@ -53,7 +49,7 @@ class Computer(models.Model):
         else:
             raise ComputerException(
                 "You cannot set the address of Computer to {} since it only has support to {} addresses".format(
-                address_index, self.program_stack_size))
+                address_index, self.program_stack_size or 0))
         return self
 
     def insert(self, possible_instruction, instruction_arg=None):

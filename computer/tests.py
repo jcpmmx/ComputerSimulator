@@ -3,37 +3,56 @@
 
 from __future__ import print_function, unicode_literals
 
-import os
-import sys
-import django
+from django.test import TestCase
 
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'deviget.settings'
-django.setup()
+from computer.models import Computer
 
 
-# TODO(Julian): Remove this and add proper test cases
-# For quick, local testing
-if __name__ == '__main__':
-    PRINT_TENTEN_BEGIN = 50
-    MAIN_BEGIN = 0
-    from computer.models import Computer
-    computer = Computer(stack_size=100)
+class ComputerTestCase(TestCase):
+    """
+    Test case that check the behavior of `Computer` when tested as a standalone model.
+    """
+    
+    def test_good_program(self):
+        """
+        The program is as given originally by the test description and produces the expected output.
+        """
+        PRINT_TENTEN_BEGIN = 50
+        MAIN_BEGIN = 0
+        computer = Computer(program_stack_size=100)
+        computer.set_address(PRINT_TENTEN_BEGIN).insert('MULT').insert('PRINT').insert('RET')
+        computer.set_address(MAIN_BEGIN).insert('PUSH', 1009).insert('PRINT')
+        computer.insert('PUSH', 6)
+        computer.insert('PUSH', 101).insert('PUSH', 10).insert('CALL', PRINT_TENTEN_BEGIN)
+        computer.insert('STOP')
+        computer.set_address(MAIN_BEGIN)
+        output_data = computer.execute()
+        self.assertEqual(output_data, ['1009', '1010'])
 
-    # Instructions for the print_tenten function
-    computer.set_address(PRINT_TENTEN_BEGIN).insert("MULT").insert("PRINT").insert("RET")
-    # The start of the main function
-    computer.set_address(MAIN_BEGIN).insert("PUSH", 1009).insert("PRINT")
-    # Return address for when print_tenten function finishes
-    computer.insert("PUSH", 6)
-    # Setup arguments and call print_tenten
-    computer.insert("PUSH", 101).insert("PUSH", 10).insert("CALL", PRINT_TENTEN_BEGIN)
-    # Stop the program
-    computer.insert("STOP")
-    # Execute the program
-    computer.set_address(MAIN_BEGIN)
-    output = computer.execute()
+    def test_bad_program(self):
+        """
+        We explicitly remove the STOP instruction, making the program enter an infinite loop that causes a failure when
+        trying to execute MULT (line 50) without data in memory (since it has been already removed by the 1st run).
+        """
+        PRINT_TENTEN_BEGIN = 50
+        MAIN_BEGIN = 0
+        computer = Computer(program_stack_size=100)
+        computer.set_address(PRINT_TENTEN_BEGIN).insert('MULT').insert('PRINT').insert('RET')
+        computer.set_address(MAIN_BEGIN).insert('PUSH', 1009).insert('PRINT')
+        computer.insert('PUSH', 6)
+        computer.insert('PUSH', 101).insert('PUSH', 10).insert('CALL', PRINT_TENTEN_BEGIN)
+        #computer.insert('STOP')
+        computer.set_address(MAIN_BEGIN)
+        self.assertRaises(IndexError, computer.execute)
 
-    print('---')
-    print('\n'.join('{}'.format(x) for x in output))
-    print('---')
+    def test_different_program(self):
+        """
+        We create a different program to make sure everything works as expected.
+        """
+        computer = Computer(program_stack_size=30)
+        computer.insert('PUSH', 7).insert('PUSH', 7).insert('PUSH', 49).insert('CALL', 13)
+        computer.set_address(13)
+        computer.insert('PRINT').insert('MULT').insert('PRINT').insert('STOP')
+        computer.set_address(0)
+        output_data = computer.execute()
+        self.assertEqual(output_data, ['49', '49'])
