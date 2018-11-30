@@ -2,14 +2,14 @@
 > Originally developed as a take-home test project for Deviget.
 
 ### System requirements
-- Python
-- SQLite
+- Python (v2.7)
+- SQLite (v3)
 
 ### Built and tested with
 - Python (v2.7)
 - Django (v1.11)
 - Django REST Framework (v3.7.1)
-- SQLite
+- SQLite (v3)
 
 ---
 
@@ -37,8 +37,7 @@ It supports these instructions:
 - `PRINT`: Pop value from stack and print it 
 - `PUSH arg`: Push argument to the stack 
 
-The code should execute against: 
-
+Code should execute against:  
 ```ruby
 PRINT_TENTEN_BEGIN = 50
 MAIN_BEGIN = 0
@@ -61,7 +60,7 @@ end
 main() 
 ```
 
-It also has support via API:
+It also has support via API:  
 ```bash
 # Create new computer with a stack of 100 addresses
 curl -XPOST -d'{"stack":100}' you-app-server/v1/computers
